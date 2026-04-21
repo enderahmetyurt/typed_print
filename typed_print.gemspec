@@ -10,14 +10,14 @@ Gem::Specification.new do |spec|
 
   spec.summary = "Beautiful, aligned table output for Ruby hashes and objects"
   spec.description = "TypedPrint provides zero-dependency, beautifully formatted table output for Ruby data structures with automatic column sizing, alignment options, custom headers, and column filtering."
-  spec.homepage = "https://github.com/yourusername/typed_print"
+  spec.homepage = "https://github.com/enderahmetyurt/typed_print"
   spec.license = "MIT"
   spec.required_ruby_version = ">= 2.6.0"  # Changed from 3.2.0 for broader compatibility
 
   spec.metadata["allowed_push_host"] = "https://rubygems.org"
   spec.metadata["homepage_uri"] = spec.homepage
-  spec.metadata["source_code_uri"] = "https://github.com/yourusername/typed_print"
-  spec.metadata["changelog_uri"] = "https://github.com/yourusername/typed_print/blob/main/CHANGELOG.md"
+  spec.metadata["source_code_uri"] = "https://github.com/enderahmetyurt/typed_print"
+  spec.metadata["changelog_uri"] = "https://github.com/enderahmetyurt/typed_print/blob/main/CHANGELOG.md"
 
   # Specify which files should be added to the gem when it is released.
   # The `git ls-files -z` loads the files in the RubyGem that have been added into git.
