@@ -6,3 +6,13 @@
 /pkg/
 /spec/reports/
 /tmp/
+
+# Gem artifacts
+*.gem
+
+# Bundler
+/vendor/bundle
+
+# IDE files
+.DS_Store
+*.swp
