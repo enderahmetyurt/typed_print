@@ -11,7 +11,15 @@ module TypedPrint
       @headers = determine_headers
     end
 
-    def render
+    def render(format = :plain)
+      if format == :markdown
+        render_markdown
+      else
+        render_plain
+      end
+    end
+
+    def render_plain
       return "" if @data.empty?
 
       # Build rows
@@ -22,7 +30,6 @@ module TypedPrint
         if @custom_headers[h]
           @custom_headers[h]
         else
-          # Capitalize each word in the header
           h.to_s.split('_').map(&:capitalize).join(' ')
         end
       end
@@ -46,6 +53,43 @@ module TypedPrint
       output.join("\n")
     end
 
+    def render_markdown
+      return "" if @data.empty?
+
+      # Build rows
+      rows = @data.map { |row| @headers.map { |h| format_value(row[h]) } }
+
+      # Build header strings
+      header_strings = @headers.map do |h|
+        if @custom_headers[h]
+          @custom_headers[h]
+        else
+          h.to_s.split('_').map(&:capitalize).join(' ')
+        end
+      end
+
+      # Calculate column widths for consistent spacing
+      column_widths = header_strings.map(&:length)
+      rows.each do |row|
+        row.each_with_index do |cell, i|
+          column_widths[i] = [column_widths[i], cell.length].max
+        end
+      end
+
+      # Build markdown table
+      output = []
+      # Header row
+      output << "| " + header_strings.each_with_index.map { |h, i| h.ljust(column_widths[i]) }.join(" | ") + " |"
+      # Separator row
+      output << "|" + column_widths.map { |w| "-" * (w + 2) }.join("|") + "|"
+      # Data rows
+      rows.each do |row|
+        output << "| " + row.each_with_index.map { |cell, i| cell.ljust(column_widths[i]) }.join(" | ") + " |"
+      end
+
+      output.join("\n")
+    end
+
     private
 
     def format_value(value)
@@ -61,12 +105,9 @@ module TypedPrint
       all_keys = @data.flat_map(&:keys).uniq
 
       if @only_columns
-        # Only include specified columns, in the order specified
         @only_columns.select { |key| all_keys.include?(key) }
       else
-        # Preserve the order from the first hash, but ensure all keys are included
         first_item_keys = @data.first.keys
-        # Then add any additional keys from other items that weren't in the first
         first_item_keys + (all_keys - first_item_keys)
       end
     end
@@ -74,8 +115,6 @@ module TypedPrint
     def format_row(cells, widths, alignment_override = nil)
       cells.each_with_index.map do |cell, i|
         width = widths[i]
-
-        # Determine alignment - need to use the header key, not the cell value
         header_key = @headers[i]
 
         align = if alignment_override
@@ -91,7 +130,7 @@ module TypedPrint
           cell.rjust(width)
         when :center
           cell.center(width)
-        else # :left
+        else
           cell.ljust(width)
         end
       end.join(" ")

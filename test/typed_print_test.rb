@@ -69,6 +69,20 @@ class TypedPrintFeaturesTest < Minitest::Test
     refute_match(/first_name/i, output)
   end
 
+  def test_markdown_format
+    data = [
+      { name: "Alice", score: 100 },
+      { name: "Bob", score: 42 }
+    ]
+
+    output = TypedPrint.table(data, format: :markdown)
+
+    assert_includes output, "| Name  | Score |"
+    assert_includes output, "|-------|-------|"
+    assert_includes output, "| Alice | 100   |"
+    assert_includes output, "| Bob   | 42    |"
+  end
+
   private
 
   def capture_io
