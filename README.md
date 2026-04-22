@@ -23,16 +23,17 @@ Beautiful, aligned table output for Ruby hashes and objects with zero dependenci
 
 Add this line to your application's Gemfile:
 
-gem 'typed_print'
+`gem 'typed_print'`
 
 Or install it yourself:
 
-gem install typed_print
+`gem install typed_print`
 
 ## Usage
 
 ### Basic Usage
 
+```ruby
 require 'typed_print'
 
 data = [
@@ -41,121 +42,122 @@ data = [
 ]
 
 TypedPrint.print(data)
+```
 
 Output:
 
- Name  Score Active 
+```
+Name  Score Active 
 ------+------+-------
 Alice   100 true   
 Bob      42 false  
+```
 
 ### Markdown Format (NEW in v0.2.0)
-
-Need to document something or save logs in markdown? Use markdown format:
-
+```ruby
 TypedPrint.print(data, format: :markdown)
+```
 
 Output:
-
+```
 | Name  | Score | Active |
 |-------|-------|--------|
 | Alice | 100   | true   |
 | Bob   | 42    | false  |
-
-Perfect for copying into markdown files, GitHub READMEs, or documentation.
+```
 
 ### Column Alignment
-
-Right-align specific columns:
-
+```ruby
 TypedPrint.print(data, align: { score: :right })
+```
 
 Output:
-
- Name  Score Active 
+```
+Name  Score Active 
 ------+------+-------
 Alice   100 true   
-Bob      42 false  
+Bob      42 false
+```
 
 ### Filter Columns
 
-Show only specific columns:
-
+```ruby
 TypedPrint.print(data, only: [:name, :score])
+```
 
 Output:
-
- Name  Score 
+```
+Name  Score 
 ------+------
 Alice   100 
 Bob      42 
+```
 
 ### Custom Headers
-
-Rename columns for display:
-
+```ruby
 TypedPrint.print(data, headers: { name: "Username", score: "Points", active: "Status" })
+```
 
 Output:
-
- Username Points Status 
+```
+Username Points Status 
 ---------+------+-------
 Alice       100 true   
 Bob          42 false  
+```
 
 ### Return String Instead of Printing
-
-Use `table` method to get the formatted string:
-
+```ruby
 table_string = TypedPrint.table(data)
 puts table_string.upcase
 
-# Or with markdown format
+# Markdown format
 markdown_string = TypedPrint.table(data, format: :markdown)
 File.write("table.md", markdown_string)
+````
 
 ### Working with Different Data Types
-
+```ruby
 mixed_data = [
   { name: "Product A", price: 29.99, in_stock: true, notes: nil },
   { name: "Product B", price: 49.99, in_stock: false, notes: "Limited edition" }
 ]
 
 TypedPrint.print(mixed_data)
+```
 
 Output:
-
-   Name      Price In_stock Notes        
+```
+Name      Price In_stock Notes        
 ----------+-------+---------+-------------
 Product A   29.99 true                  
 Product B   49.99 false    Limited edition
+```
 
 ## API Reference
+`TypedPrint.print(data, options)` Prints the formatted table to stdout and returns `nil`.
 
-### TypedPrint.print(data, options)
 
-Prints the formatted table to stdout and returns nil.
+**Options:**
+- `align: Hash` - Column alignment (`:left`, `:right`, `:center`), defaults to `:left`
+- `only: Array` - Array of column symbols to display
+- `headers: Hash` - Custom headers for columns
+- `format: Symbol` - Output format (`:plain` or `:markdown`), defaults to `:plain`
 
-Options:
-- align: Hash - Column alignment (:left, :right, :center), defaults to :left
-- only: Array - Array of column symbols to display
-- headers: Hash - Custom headers for columns
-- format: Symbol - Output format (:plain or :markdown), defaults to :plain
+`TypedPrint.table(data, options)` returns the formatted table as a string.
 
-### TypedPrint.table(data, options)
-
-Returns the formatted table as a string. Same options as print.
+Same options as `print`.
 
 ## Development
 
-After checking out the repo, run bin/setup to install dependencies. Then, run rake test to run the tests.
+After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake test` to run the tests.
 
-To install this gem onto your local machine, run bundle exec rake install.
+To install this gem onto your local machine, run `bundle exec rake install`.
 
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/enderahmetyurt/typed_print.
+Bug reports and pull requests are welcome on GitHub at https://github.com/yourusername/typed_print.
 
 ## License
 
-The gem is available as open source under the terms of the MIT License.
+The gem is available as open source under the terms of the [MIT License](https://opensource.org/licenses/MIT).
