@@ -69,6 +69,66 @@ class TypedPrintFeaturesTest < Minitest::Test
     refute_match(/first_name/i, output)
   end
 
+  def test_color_auto_mode
+    data = [
+      { name: "Alice", score: 100, active: true },
+      { name: "Bob", score: 42, active: false }
+    ]
+
+    output = TypedPrint.table(data, color: true)
+
+    assert_match(/Alice/, output)
+    assert_match(/100/, output)
+    assert_match(/true/, output)
+  end
+
+  def test_color_manual_mode
+    data = [
+      { name: "Alice", score: 100 },
+      { name: "Bob", score: 42 }
+    ]
+
+    output = TypedPrint.table(data, colors: { name: :cyan, score: :green })
+
+    assert_match(/Alice/, output)
+    assert_match(/100/, output)
+  end
+
+  def test_color_false_is_default
+    data = [{ name: "Alice", score: 100 }]
+
+    plain = TypedPrint.table(data)
+    with_color_false = TypedPrint.table(data, color: false)
+
+    assert_equal plain, with_color_false
+  end
+
+  def test_markdown_color_auto_mode
+    data = [
+      { name: "Alice", score: 100, active: true },
+      { name: "Bob", score: 42, active: false }
+    ]
+
+    output = TypedPrint.table(data, format: :markdown, color: true)
+
+    assert_match(/Alice/, output)
+    assert_match(/100/, output)
+    assert_match(/\|.*\|.*\|/, output)
+  end
+
+  def test_markdown_color_manual_mode
+    data = [
+      { name: "Alice", score: 100 },
+      { name: "Bob", score: 42 }
+    ]
+
+    output = TypedPrint.table(data, format: :markdown, colors: { name: :cyan, score: :green })
+
+    assert_match(/Alice/, output)
+    assert_match(/100/, output)
+    assert_match(/\|.*\|.*\|/, output)
+  end
+
   def test_markdown_format
     data = [
       { name: "Alice", score: 100 },

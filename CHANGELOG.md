@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.3.0] - 2026-04-27
+
+### Added
+- Optional color support via `pastel` gem (runtime optional, dev dependency)
+- `color: true` for automatic type-based coloring (headers cyan, numbers green, booleans green/red, nil gray)
+- `colors: { col: :color }` for manual per-column color mapping
+- Color support for both `:plain` and `:markdown` formats
+
 ## [0.2.0] - 2026-04-22
 
 ### Added

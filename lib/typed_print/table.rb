@@ -1,12 +1,20 @@
 # frozen_string_literal: true
 
+begin
+  require "pastel"
+rescue LoadError
+  # Pastel not installed; color output silently disabled
+end
+
 module TypedPrint
   class Table
-    def initialize(data, alignments = {}, only_columns = nil, custom_headers = {})
+    def initialize(data, alignments = {}, only_columns = nil, custom_headers = {}, color: false, colors: nil)
       @data = data
       @alignments = alignments
       @only_columns = only_columns&.map(&:to_sym)
       @custom_headers = custom_headers.transform_keys(&:to_sym)
+      @color_auto = color
+      @colors = colors&.transform_keys(&:to_sym)
 
       @headers = determine_headers
     end
@@ -22,32 +30,30 @@ module TypedPrint
     def render_plain
       return "" if @data.empty?
 
-      # Build rows
-      rows = @data.map { |row| @headers.map { |h| format_value(row[h]) } }
+      rows_plain = @data.map { |row| @headers.map { |h| format_value(row[h]) } }
+      header_strings_plain = @headers.map { |h| header_label(h) }
 
-      # Build header strings (with custom headers or capitalized defaults)
-      header_strings = @headers.map do |h|
-        if @custom_headers[h]
-          @custom_headers[h]
-        else
-          h.to_s.split('_').map(&:capitalize).join(' ')
-        end
-      end
-
-      # Calculate column widths
-      column_widths = header_strings.map(&:length)
-      rows.each do |row|
+      column_widths = header_strings_plain.map(&:length)
+      rows_plain.each do |row|
         row.each_with_index do |cell, i|
           column_widths[i] = [column_widths[i], cell.length].max
         end
       end
 
-      # Build output
+      if color_mode?
+        header_color = @color_auto ? :cyan : nil
+        header_strings_display = header_strings_plain.map { |h| colorize(h, header_color) }
+        rows_display = @data.map { |row| @headers.map { |h| colorize_cell(h, row[h]) } }
+      else
+        header_strings_display = header_strings_plain
+        rows_display = rows_plain
+      end
+
       output = []
-      output << format_row(header_strings, column_widths, :center)
+      output << format_row(header_strings_display, column_widths, :center, header_strings_plain)
       output << separator(column_widths)
-      rows.each do |row|
-        output << format_row(row, column_widths)
+      rows_plain.each_with_index do |plain_row, ri|
+        output << format_row(rows_display[ri], column_widths, nil, plain_row)
       end
 
       output.join("\n")
@@ -56,35 +62,34 @@ module TypedPrint
     def render_markdown
       return "" if @data.empty?
 
-      # Build rows
-      rows = @data.map { |row| @headers.map { |h| format_value(row[h]) } }
+      rows_plain = @data.map { |row| @headers.map { |h| format_value(row[h]) } }
+      header_strings_plain = @headers.map { |h| header_label(h) }
 
-      # Build header strings
-      header_strings = @headers.map do |h|
-        if @custom_headers[h]
-          @custom_headers[h]
-        else
-          h.to_s.split('_').map(&:capitalize).join(' ')
-        end
-      end
-
-      # Calculate column widths for consistent spacing
-      column_widths = header_strings.map(&:length)
-      rows.each do |row|
+      column_widths = header_strings_plain.map(&:length)
+      rows_plain.each do |row|
         row.each_with_index do |cell, i|
           column_widths[i] = [column_widths[i], cell.length].max
         end
       end
 
-      # Build markdown table
+      if color_mode?
+        header_color = @color_auto ? :cyan : nil
+        header_strings_display = header_strings_plain.map { |h| colorize(h, header_color) }
+        rows_display = @data.map { |row| @headers.map { |h| colorize_cell(h, row[h]) } }
+      else
+        header_strings_display = header_strings_plain
+        rows_display = rows_plain
+      end
+
       output = []
-      # Header row
-      output << "| " + header_strings.each_with_index.map { |h, i| h.ljust(column_widths[i]) }.join(" | ") + " |"
-      # Separator row
+      output << "| " + header_strings_display.each_with_index.map { |h, i|
+        pad_right(h, header_strings_plain[i], column_widths[i])
+      }.join(" | ") + " |"
       output << "|" + column_widths.map { |w| "-" * (w + 2) }.join("|") + "|"
-      # Data rows
-      rows.each do |row|
-        output << "| " + row.each_with_index.map { |cell, i| cell.ljust(column_widths[i]) }.join(" | ") + " |"
+      rows_plain.each_with_index do |plain_row, ri|
+        output << "| " + rows_display[ri].each_with_index.map { |cell, i|
+          pad_right(cell, plain_row[i], column_widths[i])
+        }.join(" | ") + " |"
       end
 
       output.join("\n")
@@ -101,6 +106,49 @@ module TypedPrint
       end
     end
 
+    def header_label(h)
+      if @custom_headers[h]
+        @custom_headers[h]
+      else
+        h.to_s.split("_").map(&:capitalize).join(" ")
+      end
+    end
+
+    def color_mode?
+      @color_auto || (@colors && !@colors.empty?)
+    end
+
+    def colorize(text, color)
+      return text unless color && defined?(Pastel)
+      @pastel ||= Pastel.new
+      @pastel.send(color, text)
+    rescue
+      text
+    end
+
+    def colorize_cell(header_key, original_value)
+      plain = format_value(original_value)
+      color = cell_color(header_key, original_value)
+      colorize(plain, color)
+    end
+
+    def cell_color(header_key, value)
+      if @colors
+        @colors[header_key]
+      elsif @color_auto
+        auto_color(value)
+      end
+    end
+
+    def auto_color(value)
+      case value
+      when Integer, Float then :green
+      when true then :green
+      when false then :red
+      when nil then :bright_black
+      end
+    end
+
     def determine_headers
       all_keys = @data.flat_map(&:keys).uniq
 
@@ -112,8 +160,9 @@ module TypedPrint
       end
     end
 
-    def format_row(cells, widths, alignment_override = nil)
+    def format_row(cells, widths, alignment_override = nil, plain_cells = nil)
       cells.each_with_index.map do |cell, i|
+        plain_cell = plain_cells ? plain_cells[i] : cell
         width = widths[i]
         header_key = @headers[i]
 
@@ -125,15 +174,23 @@ module TypedPrint
           :left
         end
 
+        padding = width - plain_cell.length
+
         case align
         when :right
-          cell.rjust(width)
+          " " * padding + cell
         when :center
-          cell.center(width)
+          left_pad = padding / 2
+          right_pad = padding - left_pad
+          " " * left_pad + cell + " " * right_pad
         else
-          cell.ljust(width)
+          cell + " " * padding
         end
       end.join(" ")
+    end
+
+    def pad_right(colored_text, plain_text, width)
+      colored_text + " " * (width - plain_text.length)
     end
 
     def separator(widths)
