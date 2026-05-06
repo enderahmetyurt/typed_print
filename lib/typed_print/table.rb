@@ -27,6 +27,19 @@ module TypedPrint
       end
     end
 
+    def to_csv(col_sep: ",")
+      require "csv"
+      return "" if @data.empty?
+
+      header_row = @headers.map { |h| header_label(h) }
+      rows = @data.map { |row| @headers.map { |h| format_value(row[h]) } }
+
+      CSV.generate(col_sep: col_sep) do |csv|
+        csv << header_row
+        rows.each { |row| csv << row }
+      end
+    end
+
     def render_plain
       return "" if @data.empty?
 
@@ -150,6 +163,8 @@ module TypedPrint
     end
 
     def determine_headers
+      return [] if @data.empty?
+
       all_keys = @data.flat_map(&:keys).uniq
 
       if @only_columns

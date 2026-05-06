@@ -18,6 +18,48 @@ class TestTypedPrint < Minitest::Test
     assert_match(/Test.*123/, output)
   end
 
+  def test_to_csv_returns_csv_string
+    data = [{ name: "Alice", age: 30 }, { name: "Bob", age: 25 }]
+    csv = TypedPrint.to_csv(data)
+
+    assert_match(/Name,Age/, csv)
+    assert_match(/Alice,30/, csv)
+    assert_match(/Bob,25/, csv)
+  end
+
+  def test_to_csv_custom_delimiter
+    data = [{ name: "Alice", age: 30 }]
+    csv = TypedPrint.to_csv(data, delimiter: ";")
+
+    assert_match(/Name;Age/, csv)
+    assert_match(/Alice;30/, csv)
+  end
+
+  def test_to_csv_only_columns
+    data = [{ name: "Alice", age: 30, city: "NY" }]
+    csv = TypedPrint.to_csv(data, only: [:name, :age])
+
+    assert_match(/Name,Age/, csv)
+    refute_match(/City/, csv)
+  end
+
+  def test_to_csv_empty_data
+    assert_equal "", TypedPrint.to_csv([])
+  end
+
+  def test_save_writes_file_with_bom
+    data = [{ name: "Alice", score: 99 }]
+    path = File.join(Dir.tmpdir, "typed_print_test_#{Process.pid}.csv")
+    TypedPrint.save(data, path)
+
+    content = File.binread(path)
+    assert content.start_with?("\xEF\xBB\xBF".b), "Expected UTF-8 BOM"
+    assert_match(/Name,Score/, content)
+    assert_match(/Alice,99/, content)
+  ensure
+    File.delete(path) if File.exist?(path)
+  end
+
   private
 
   def capture_io

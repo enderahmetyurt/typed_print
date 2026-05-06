@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.4.0] - 2026-05-02
+
+### Added
+- `TypedPrint.to_csv(data, only:, headers:, delimiter: ",")` — returns CSV string
+- `TypedPrint.save(data, path, only:, headers:, delimiter: ",")` — writes CSV file with UTF-8 BOM (Excel-compatible)
+- Custom delimiter support (`,` or `;` or any character)
+- Fixed edge case: empty data no longer raises on `determine_headers`
+
 ## [0.3.0] - 2026-04-27
 
 ### Added

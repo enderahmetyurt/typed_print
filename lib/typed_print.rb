@@ -13,4 +13,15 @@ module TypedPrint
     table_obj = TypedPrint::Table.new(data, align, only, headers, color: color, colors: colors)
     table_obj.render(format)
   end
+
+  def self.to_csv(data, only: nil, headers: {}, delimiter: ",")
+    table_obj = TypedPrint::Table.new(data, {}, only, headers)
+    table_obj.to_csv(col_sep: delimiter)
+  end
+
+  def self.save(data, path, only: nil, headers: {}, delimiter: ",")
+    csv = to_csv(data, only: only, headers: headers, delimiter: delimiter)
+    File.write(path, "\xEF\xBB\xBF" + csv, encoding: "UTF-8")
+    nil
+  end
 end
